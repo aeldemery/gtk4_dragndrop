@@ -10,11 +10,12 @@ public class Gtk4Demo.CanvasItem : Gtk.Widget {
     Gtk.Entry entry;
 
     static int n_items = 0;
+    static ulong signal_id;
 
     construct {
-        this.set_layout_manager_type(typeof(Gtk.BinLayout));
-        this.set_css_name("item");
-                
+        this.set_layout_manager_type (typeof (Gtk.BinLayout));
+        this.set_css_name ("item");
+
         n_items++;
         label = new Gtk.Label ("Item $n_items");
         label.add_css_class ("canvasitem");
@@ -26,14 +27,6 @@ public class Gtk4Demo.CanvasItem : Gtk.Widget {
         label.add_css_class ("frame");
         label.name = "item$n_items";
 
-        scale = new Gtk.Scale.with_range(Gtk.Orientation.HORIZONTAL, 0, 360,1);
-        scale.draw_value = false;
-        scale.set_value(Math.fmod(angle, 360));
-        scale.value_changed.connect(scale_changed);
-
-        entry = new Gtk.Entry();
-        entry.set_text(label.get_text());
-
         Gdk.RGBA rgba;
         rgba.parse ("yellow");
 
@@ -43,7 +36,7 @@ public class Gtk4Demo.CanvasItem : Gtk.Widget {
 
         var dest = new Gtk.DropTarget (GLib.Type.INVALID, Gdk.DragAction.COPY);
         dest.set_gtypes ({ typeof (Gdk.RGBA), typeof (string) });
-        //dest.drop.connect (item_drag_drop);
+        // dest.drop.connect (item_drag_drop);
         label.add_controller (dest);
 
         var gesture_rotate = new Gtk.GestureRotate ();
@@ -52,8 +45,8 @@ public class Gtk4Demo.CanvasItem : Gtk.Widget {
         this.add_controller (gesture_rotate);
 
         var gesture_click = new Gtk.GestureClick ();
-        gesture_click.released.connect(click_done);
-        this.add_controller(gesture_click);
+        gesture_click.released.connect (click_done);
+        this.add_controller (gesture_click);
     }
 
     void set_color (Gdk.RGBA color) {
@@ -78,13 +71,13 @@ public class Gtk4Demo.CanvasItem : Gtk.Widget {
     void click_done (Gtk.Gesture gesture, int n_press, double x, double y) {
     }
 
-    new void map() {
-        base.map();
-        apply_transform();
+    new void map () {
+        base.map ();
+        apply_transform ();
     }
 
     Gdk.Paintable get_drag_icon () {
-        return new Gtk.WidgetPaintable(fixed);
+        return new Gtk.WidgetPaintable (fixed);
     }
 
     bool is_editing () {
@@ -92,7 +85,44 @@ public class Gtk4Demo.CanvasItem : Gtk.Widget {
     }
 
     void scale_changed (Gtk.Range range) {
-        angle = range.get_value();
-        apply_transform();
+        angle = range.get_value ();
+        apply_transform ();
+    }
+
+    void text_changed (GLib.Object editable, GLib.ParamSpec pspec) {
+        label.set_text ((editable as Gtk.Editable).get_text ());
+        apply_transform ();
+    }
+
+    void stop_editing () {
+        if (editor == null) return;
+        scale.disconnect (signal_id);
+        fixed.remove (editor);
+        editor = null;
+    }
+
+    void start_editing () {
+        if (editor != null) return;
+        editor = new Gtk.Box (Gtk.Orientation.VERTICAL, 12);
+
+        entry = new Gtk.Entry ();
+        entry.set_text (label.get_text ());
+        entry.width_chars = 12;
+        entry.notify["text"].connect (text_changed);
+        entry.activate.connect_after (stop_editing);
+
+        editor.append (entry);
+
+        scale = new Gtk.Scale.with_range (Gtk.Orientation.HORIZONTAL, 0, 360, 1);
+        scale.draw_value = false;
+        scale.set_value (Math.fmod (angle, 360));
+        signal_id = scale.value_changed.connect (scale_changed);
+
+        editor.append(scale);
+
+        double x, y;
+        this.translate_coordinates(fixed, 0, 0, out x, out y);
+        fixed.put(editor, x, y + 2 * r);
+        entry.grab_focus();
     }
 }

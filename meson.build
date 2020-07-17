@@ -5,12 +5,15 @@ project ('github.aeldemery.gtk4_dragndrop',
 
 sources = files(
     'src/Main.vala',
+    'src/CanvasItem.vala',
+    'src/MainWindow.vala',
 )
 
 dependencies = [
     dependency ('glib-2.0'),
     dependency ('gobject-2.0'),
     dependency ('gtk4'),
+    meson.get_compiler('c').find_library('m', required: false),
 ]
 
 sources += import( 'gnome' ).compile_resources(
