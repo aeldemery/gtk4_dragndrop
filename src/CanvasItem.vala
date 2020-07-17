@@ -36,7 +36,7 @@ public class Gtk4Demo.CanvasItem : Gtk.Widget {
 
         var dest = new Gtk.DropTarget (GLib.Type.INVALID, Gdk.DragAction.COPY);
         dest.set_gtypes ({ typeof (Gdk.RGBA), typeof (string) });
-        // dest.drop.connect (item_drag_drop);
+        // dest.drop.connect (item_drag_drop); // Vala bug
         label.add_controller (dest);
 
         var gesture_rotate = new Gtk.GestureRotate ();
