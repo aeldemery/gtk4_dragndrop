@@ -9,15 +9,14 @@ public class Gtk4Demo.CanvasItem : Gtk.Widget {
     Gtk.Scale scale;
     Gtk.Entry entry;
 
-    static int n_items = 0;
     static ulong signal_id;
+    static int n_items = 0;
 
     construct {
         this.set_layout_manager_type (typeof (Gtk.BinLayout));
         this.set_css_name ("item");
 
-        n_items++;
-        label = new Gtk.Label ("Item $n_items");
+        label = new Gtk.Label (@"Item $n_items");
         label.add_css_class ("canvasitem");
 
         fixed = new Gtk.Fixed ();
@@ -25,7 +24,7 @@ public class Gtk4Demo.CanvasItem : Gtk.Widget {
         fixed.put (label, 0, 0);
 
         label.add_css_class ("frame");
-        label.name = "item$n_items";
+        label.name = @"item$n_items";
 
         Gdk.RGBA rgba;
         rgba.parse ("yellow");
@@ -47,6 +46,17 @@ public class Gtk4Demo.CanvasItem : Gtk.Widget {
         var gesture_click = new Gtk.GestureClick ();
         gesture_click.released.connect (click_done);
         this.add_controller (gesture_click);
+
+        n_items++;
+    }
+
+    public CanvasItem () {
+        print (n_items.to_string () + "\n");
+    }
+
+    ~CanvasItem() {
+        fixed.unparent();
+        //editor.unparent(); // TODO uncomment this later
     }
 
     void set_color (Gdk.RGBA color) {
@@ -55,7 +65,7 @@ public class Gtk4Demo.CanvasItem : Gtk.Widget {
     void set_css (string css_class) {
     }
 
-    void apply_transform () {
+    public void apply_transform () {
     }
 
     bool item_drag_drop (Gtk.DropTarget dest, Value value, double x, double y) {
@@ -118,11 +128,11 @@ public class Gtk4Demo.CanvasItem : Gtk.Widget {
         scale.set_value (Math.fmod (angle, 360));
         signal_id = scale.value_changed.connect (scale_changed);
 
-        editor.append(scale);
+        editor.append (scale);
 
         double x, y;
-        this.translate_coordinates(fixed, 0, 0, out x, out y);
-        fixed.put(editor, x, y + 2 * r);
-        entry.grab_focus();
+        this.translate_coordinates (fixed, 0, 0, out x, out y);
+        fixed.put (editor, x, y + 2 * r);
+        entry.grab_focus ();
     }
 }

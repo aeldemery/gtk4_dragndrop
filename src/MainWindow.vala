@@ -63,6 +63,34 @@ public class Gtk4Demo.MainWindow : Gtk.ApplicationWindow {
         gesture.released.connect (released_cb);
 
         fixed_canvas.add_controller (gesture);
+
+        box2.append (fixed_canvas);
+
+        int x, y;
+        x = y = 40;
+
+        for (int i = 0; i <= 4; i++) {
+            var canvas_item = new Gtk4Demo.CanvasItem ();
+            fixed_canvas.put (canvas_item, x, y);
+            canvas_item.apply_transform ();
+
+            x += 150;
+            y += 100;
+        }
+
+        sw = new Gtk.ScrolledWindow ();
+        sw.set_policy (Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.NEVER);
+
+        box.append (sw);
+
+        box3 = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
+        box3.add_css_class ("linked");
+
+        sw.set_child (box3);
+
+        foreach (var color in colors) {
+            Gdk.RGBA rgba;
+        }
     }
 
     Gdk.ContentProvider ? prepare (Gtk.DragSource source, double x, double y) {
