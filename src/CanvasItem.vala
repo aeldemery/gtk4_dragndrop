@@ -95,13 +95,19 @@ public class Gtk4Demo.CanvasItem : Gtk.Widget {
         }
 
         label.set_data<string>("css-class", css_class);
-        label.add_css_class(css_class);
+        label.add_css_class (css_class);
     }
 
     public void apply_transform () {
     }
 
     bool item_drag_drop (Gtk.DropTarget dest, Value value, double x, double y) {
+        if (value.type () == typeof (Gdk.RGBA)) {
+            set_color ((Gdk.RGBA)value.get_boxed ());
+        } else if (value.type() == typeof (string)) {
+            set_css (value.get_string());
+        }
+
         return true;
     }
 
