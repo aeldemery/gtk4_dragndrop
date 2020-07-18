@@ -3,7 +3,6 @@ public class Gtk4Demo.MainWindow : Gtk.ApplicationWindow {
         Object (application: app);
     }
 
-    Gtk.Button new_button;
     Gtk.ScrolledWindow sw;
     Gtk4Demo.CanvasItem canvas_item;
     Gtk.Fixed fixed_canvas;
@@ -153,9 +152,59 @@ public class Gtk4Demo.MainWindow : Gtk.ApplicationWindow {
     }
 
     void pressed_cb (Gtk.Gesture gesture, int n_press, double x, double y) {
+        pressed_fixed = gesture.get_widget () as Gtk.Fixed;
+        var widget = pressed_fixed.pick (x, y, Gtk.PickFlags.DEFAULT);
+        pressed_item = (Gtk4Demo.CanvasItem)widget.get_ancestor (typeof (Gtk4Demo.CanvasItem));
+
+        if ((gesture as Gtk.GestureClick).get_current_button () == Gdk.BUTTON_SECONDARY) {
+            var menu = new Gtk.Popover ();
+            menu.set_parent (pressed_fixed);
+            menu.has_arrow = false;
+            menu.pointing_to = { (int) x, (int) y, 1, 1 };
+
+            var box = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
+            menu.set_child (box);
+
+            var button = new Gtk.Button.with_label ("New");
+            button.has_frame = false;
+            button.clicked.connect (new_item_cb);
+
+            box.append (button);
+            box.append (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
+
+            button = new Gtk.Button.with_label ("Edit");
+            button.has_frame = false;
+            button.sensitive = (pressed_item != null) && (pressed_item != (Gtk.Widget)pressed_fixed);
+            button.clicked.connect (edit_item_cb);
+
+            box.append (button);
+            box.append (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
+
+            button = new Gtk.Button.with_label ("Delete");
+            button.has_frame = false;
+            button.sensitive = (pressed_item != null) && (pressed_item != (Gtk.Widget)pressed_fixed);
+            button.clicked.connect (delete_item_cb);
+
+            box.append (button);
+
+            menu.popdown ();
+        }
     }
 
     void released_cb (Gtk.Gesture gesture, int n_press, double x, double y) {
+        pressed_fixed = gesture.get_widget () as Gtk.Fixed;
+        var widget = pressed_fixed.pick (x, y, Gtk.PickFlags.DEFAULT);
+        pressed_item = (Gtk4Demo.CanvasItem)widget.get_ancestor (typeof (Gtk4Demo.CanvasItem));
+
+        if (pressed_item == null) return;
+
+        if ((gesture as Gtk.GestureClick).get_current_button () == Gdk.BUTTON_PRIMARY) {
+            if (pressed_item.is_editing()) {
+                pressed_item.stop_editing();
+            } else {
+                pressed_item.start_editing();
+            }
+        }
     }
 
     void new_item_cb (Gtk.Button button) {
