@@ -7,6 +7,7 @@ sources = files(
     'src/Main.vala',
     'src/CanvasItem.vala',
     'src/MainWindow.vala',
+    'src/ColorSwatch.vala',
 )
 
 dependencies = [
