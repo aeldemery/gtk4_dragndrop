@@ -5,7 +5,7 @@ public class Gtk4Demo.MainWindow : Gtk.ApplicationWindow {
 
     Gtk.Button button;
     Gtk.ScrolledWindow sw;
-    Gtk4Demo.CanvasItem canvas;
+    Gtk4Demo.CanvasItem canvas_item;
     Gtk.Fixed fixed_canvas;
     Gtk.Box box; Gtk.Box box2; Gtk.Box box3;
     Gtk.CssProvider provider;
@@ -37,11 +37,14 @@ public class Gtk4Demo.MainWindow : Gtk.ApplicationWindow {
         box.append (box2);
 
         fixed_canvas = new Gtk.Fixed ();
-        with (fixed_canvas) {
-            hexpand = true;
-            vexpand = true;
-            add_css_class ("frame");
-        }
+        fixed_canvas.hexpand = true;
+        fixed_canvas.vexpand = true;
+        fixed_canvas.add_css_class ("frame");
+        // with (fixed_canvas) {
+        // hexpand = true;
+        // vexpand = true;
+        // add_css_class ("frame");
+        // }
 
         source = new Gtk.DragSource ();
         source.set_actions (Gdk.DragAction.MOVE);
@@ -53,7 +56,7 @@ public class Gtk4Demo.MainWindow : Gtk.ApplicationWindow {
         fixed_canvas.add_controller (source);
 
         dest = new Gtk.DropTarget (typeof (Gtk.Widget), Gdk.DragAction.MOVE);
-        // dest.drop.connect (drag_drop); // Vala bug
+        dest.on_drop.connect (drag_drop);
 
         fixed_canvas.add_controller (dest);
 
@@ -69,8 +72,8 @@ public class Gtk4Demo.MainWindow : Gtk.ApplicationWindow {
         int x, y;
         x = y = 40;
 
-        for (int i = 0; i <= 4; i++) {
-            var canvas_item = new Gtk4Demo.CanvasItem ();
+        for (int i = 0; i < 4; i++) {
+            canvas_item = new Gtk4Demo.CanvasItem ();
             fixed_canvas.put (canvas_item, x, y);
             canvas_item.apply_transform ();
 
@@ -109,14 +112,25 @@ public class Gtk4Demo.MainWindow : Gtk.ApplicationWindow {
         item = item.get_ancestor (typeof (Gtk4Demo.CanvasItem));
         if (item == null) return null;
 
-        canvas_widget.set_data ("dragged-item", item);
+        canvas_widget.set_data<Gtk.Widget>("dragged-item", item);
         return new Gdk.ContentProvider.for_value (item);
     }
 
     void drag_begin (Gtk.DragSource source, Gdk.Drag drag) {
+        var canvas_widget = source.get_widget ();
+        var item = canvas_widget.get_data<Gtk4Demo.CanvasItem>("dragged-item");
+
+        var paintable = item.get_drag_icon ();
+        source.set_icon (paintable, (int) item.r, (int) item.r);
+        item.set_opacity (0.3);
     }
 
     void drag_end (Gtk.DragSource source, Gdk.Drag drag, bool delete_data) {
+        var canvas_widget = source.get_widget ();
+        var item = canvas_widget.get_data<Gtk4Demo.CanvasItem>("dragged-item");
+
+        canvas_widget.set_data<Gtk.Widget>("dragged-item", null);
+        item.set_opacity(1.0);
     }
 
     bool drag_cancel (Gtk.DragSource source, Gdk.Drag drag, Gdk.DragCancelReason reason) {
@@ -124,6 +138,16 @@ public class Gtk4Demo.MainWindow : Gtk.ApplicationWindow {
     }
 
     bool drag_drop (Gtk.DropTarget target, Value value, double x, double y) {
+        var item = value.get_object() as Gtk4Demo.CanvasItem;
+        var canvas_widget = item.get_parent();
+        var last_child = canvas_widget.get_last_child();
+
+        if (item != last_child) {
+            item.insert_after(canvas_widget, last_child);
+        }
+
+        ((Gtk.Fixed)canvas_widget).move(item, x - item.r, y - item.r);
+        
         return true;
     }
 

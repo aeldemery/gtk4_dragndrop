@@ -13,6 +13,7 @@ public class Gtk4Demo.CanvasItem : Gtk.Widget {
     static int n_items = 0;
 
     construct {
+        n_items++;
         this.set_layout_manager_type (typeof (Gtk.BinLayout));
         this.set_css_name ("item");
 
@@ -31,11 +32,11 @@ public class Gtk4Demo.CanvasItem : Gtk.Widget {
 
         set_color (rgba);
 
-        angle = 0;
+        this.angle = 0;
 
         var dest = new Gtk.DropTarget (GLib.Type.INVALID, Gdk.DragAction.COPY);
         dest.set_gtypes ({ typeof (Gdk.RGBA), typeof (string) });
-        // dest.drop.connect (item_drag_drop); // Vala bug
+        dest.on_drop.connect (item_drag_drop);
         label.add_controller (dest);
 
         var gesture_rotate = new Gtk.GestureRotate ();
@@ -46,8 +47,6 @@ public class Gtk4Demo.CanvasItem : Gtk.Widget {
         var gesture_click = new Gtk.GestureClick ();
         gesture_click.released.connect (click_done);
         this.add_controller (gesture_click);
-
-        n_items++;
     }
 
     public CanvasItem () {
@@ -56,7 +55,7 @@ public class Gtk4Demo.CanvasItem : Gtk.Widget {
 
     ~CanvasItem () {
         fixed.unparent ();
-        // editor.unparent(); // TODO uncomment this later
+        editor.unparent();
     }
 
     void set_color (Gdk.RGBA color) {
@@ -109,12 +108,12 @@ public class Gtk4Demo.CanvasItem : Gtk.Widget {
         transform.rotate ((float) angle + (float) delta);
         transform.translate ({ -x, -y });
 
-        fixed.set_child_transform(label, transform);
+        fixed.set_child_transform (label, transform);
     }
 
     bool item_drag_drop (Gtk.DropTarget dest, Value value, double x, double y) {
         if (value.type () == typeof (Gdk.RGBA)) {
-            set_color ((Gdk.RGBA)value.get_boxed ());
+            set_color ((Gdk.RGBA ? )value.get_boxed ());
         } else if (value.type () == typeof (string)) {
             set_css (value.get_string ());
         }
@@ -123,12 +122,22 @@ public class Gtk4Demo.CanvasItem : Gtk.Widget {
     }
 
     void angle_changed (Gtk.GestureRotate gesture, double angle, double delta) {
+        this.delta = angle / Math.PI * 180.0;
+        apply_transform ();
     }
 
     void rotate_done (Gtk.Gesture gesture, Gdk.EventSequence sequence) {
+        this.angle = this.angle + this.delta;
+        this.delta = 0;
     }
 
     void click_done (Gtk.Gesture gesture, int n_press, double x, double y) {
+        var item = gesture.get_widget ();
+        var canvas = item.get_parent ();
+        var last_child = canvas.get_last_child ();
+        if (item != last_child) {
+            item.insert_after (canvas, last_child);
+        }
     }
 
     new void map () {
@@ -136,7 +145,7 @@ public class Gtk4Demo.CanvasItem : Gtk.Widget {
         apply_transform ();
     }
 
-    Gdk.Paintable get_drag_icon () {
+    public Gdk.Paintable get_drag_icon () {
         return new Gtk.WidgetPaintable (fixed);
     }
 
@@ -163,6 +172,7 @@ public class Gtk4Demo.CanvasItem : Gtk.Widget {
 
     void start_editing () {
         if (editor != null) return;
+        var canvas = this.get_parent();
         editor = new Gtk.Box (Gtk.Orientation.VERTICAL, 12);
 
         entry = new Gtk.Entry ();
@@ -181,8 +191,8 @@ public class Gtk4Demo.CanvasItem : Gtk.Widget {
         editor.append (scale);
 
         double x, y;
-        this.translate_coordinates (fixed, 0, 0, out x, out y);
-        fixed.put (editor, x, y + 2 * r);
+        this.translate_coordinates (canvas, 0, 0, out x, out y);
+        (canvas as Gtk.Fixed).put (editor, x, y + 2 * r);
         entry.grab_focus ();
     }
 }
