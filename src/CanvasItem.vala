@@ -54,35 +54,48 @@ public class Gtk4Demo.CanvasItem : Gtk.Widget {
         print (n_items.to_string () + "\n");
     }
 
-    ~CanvasItem() {
-        fixed.unparent();
-        //editor.unparent(); // TODO uncomment this later
+    ~CanvasItem () {
+        fixed.unparent ();
+        // editor.unparent(); // TODO uncomment this later
     }
 
     void set_color (Gdk.RGBA color) {
-        var color_str = color.to_string();
+        var color_str = color.to_string ();
         var css_str = @"* { background: $color_str; }";
 
-        var context = label.get_style_context();
+        var context = label.get_style_context ();
         var provider = context.get_data<Gtk.CssProvider>("style-provider");
         if (provider != null) {
-            context.remove_provider(provider);
+            context.remove_provider (provider);
         }
 
         var old_class = label.get_data<string>("css-class");
         if (old_class != "") {
-            label.remove_css_class(old_class);
+            label.remove_css_class (old_class);
         }
 
-        provider = new Gtk.CssProvider();
-        provider.load_from_buffer(css_str.data);
-        
-        label.get_style_context().add_provider(provider, 800);
+        provider = new Gtk.CssProvider ();
+        provider.load_from_buffer (css_str.data);
+
+        label.get_style_context ().add_provider (provider, 800);
 
         context.set_data<Gtk.CssProvider>("style-provider", provider);
     }
 
     void set_css (string css_class) {
+        var context = label.get_style_context ();
+        var provider = context.get_data<Gtk.CssProvider>("style-provider");
+        if (provider != null) {
+            context.remove_provider (provider);
+        }
+
+        var old_class = label.get_data<string>("css-class");
+        if (old_class != "") {
+            label.remove_css_class (old_class);
+        }
+
+        label.set_data<string>("css-class", css_class);
+        label.add_css_class(css_class);
     }
 
     public void apply_transform () {
