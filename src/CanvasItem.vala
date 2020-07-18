@@ -99,13 +99,24 @@ public class Gtk4Demo.CanvasItem : Gtk.Widget {
     }
 
     public void apply_transform () {
+        float x = label.get_allocated_width () / 2.0f;
+        float y = label.get_allocated_height () / 2.0f;
+
+        this.r = Math.sqrt (x * x + y * y);
+
+        var transform = new Gsk.Transform ();
+        transform.translate ({ (float) r, (float) r });
+        transform.rotate ((float) angle + (float) delta);
+        transform.translate ({ -x, -y });
+
+        fixed.set_child_transform(label, transform);
     }
 
     bool item_drag_drop (Gtk.DropTarget dest, Value value, double x, double y) {
         if (value.type () == typeof (Gdk.RGBA)) {
             set_color ((Gdk.RGBA)value.get_boxed ());
-        } else if (value.type() == typeof (string)) {
-            set_css (value.get_string());
+        } else if (value.type () == typeof (string)) {
+            set_css (value.get_string ());
         }
 
         return true;
