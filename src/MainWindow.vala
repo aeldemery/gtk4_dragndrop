@@ -90,6 +90,16 @@ public class Gtk4Demo.MainWindow : Gtk.ApplicationWindow {
 
         foreach (var color in colors) {
             Gdk.RGBA rgba;
+            Gtk.Widget swatch;
+
+            rgba.parse (color);
+            swatch = new Gtk.Widget (
+                GLib.Type.from_name ("GtkColorSwatch"),
+                "rgba", rgba,
+                "selectable", false,
+                null
+            );
+            box3.append (swatch);
         }
     }
 
