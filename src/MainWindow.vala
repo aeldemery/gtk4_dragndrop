@@ -3,7 +3,7 @@ public class Gtk4Demo.MainWindow : Gtk.ApplicationWindow {
         Object (application: app);
     }
 
-    Gtk.Button button;
+    Gtk.Button new_button;
     Gtk.ScrolledWindow sw;
     Gtk4Demo.CanvasItem canvas_item;
     Gtk.Fixed fixed_canvas;
@@ -14,6 +14,9 @@ public class Gtk4Demo.MainWindow : Gtk.ApplicationWindow {
     Gtk.DropTarget dest;
     Gtk.GestureClick gesture;
 
+    Gtk.Fixed pressed_fixed;
+    Gtk4Demo.CanvasItem pressed_item;
+
     const string[] colors = {
         "red", "green", "blue", "magenta", "orange", "gray", "black", "yellow",
         "white", "gray", "brown", "pink", "cyan", "bisque", "gold", "maroon",
@@ -23,8 +26,6 @@ public class Gtk4Demo.MainWindow : Gtk.ApplicationWindow {
     construct {
         this.title = "Vala Drag-and-Drop";
         this.set_default_size (640, 480);
-
-        button = new Gtk.Button ();
 
         provider = new Gtk.CssProvider ();
         provider.load_from_resource ("/github/aeldemery/gtk4_dragndrop/dnd.css");
@@ -130,7 +131,7 @@ public class Gtk4Demo.MainWindow : Gtk.ApplicationWindow {
         var item = canvas_widget.get_data<Gtk4Demo.CanvasItem>("dragged-item");
 
         canvas_widget.set_data<Gtk.Widget>("dragged-item", null);
-        item.set_opacity(1.0);
+        item.set_opacity (1.0);
     }
 
     bool drag_cancel (Gtk.DragSource source, Gdk.Drag drag, Gdk.DragCancelReason reason) {
@@ -138,16 +139,16 @@ public class Gtk4Demo.MainWindow : Gtk.ApplicationWindow {
     }
 
     bool drag_drop (Gtk.DropTarget target, Value value, double x, double y) {
-        var item = value.get_object() as Gtk4Demo.CanvasItem;
-        var canvas_widget = item.get_parent();
-        var last_child = canvas_widget.get_last_child();
+        var item = value.get_object () as Gtk4Demo.CanvasItem;
+        var canvas_widget = item.get_parent ();
+        var last_child = canvas_widget.get_last_child ();
 
         if (item != last_child) {
-            item.insert_after(canvas_widget, last_child);
+            item.insert_after (canvas_widget, last_child);
         }
 
-        ((Gtk.Fixed)canvas_widget).move(item, x - item.r, y - item.r);
-        
+        ((Gtk.Fixed)canvas_widget).move (item, x - item.r, y - item.r);
+
         return true;
     }
 
@@ -155,5 +156,36 @@ public class Gtk4Demo.MainWindow : Gtk.ApplicationWindow {
     }
 
     void released_cb (Gtk.Gesture gesture, int n_press, double x, double y) {
+    }
+
+    void new_item_cb (Gtk.Button button) {
+        Gdk.Rectangle rect;
+        var popover = button.get_ancestor (typeof (Gtk.Popover)) as Gtk.Popover;
+        popover.get_pointing_to (out rect);
+
+        var item = new Gtk4Demo.CanvasItem ();
+        pressed_fixed.put (item, rect.x, rect.y);
+        item.apply_transform ();
+
+        popover.popdown ();
+    }
+
+    void edit_item_cb (Gtk.Button button) {
+        if (button != null) {
+            var popover = button.get_ancestor (typeof (Gtk.Popover)) as Gtk.Popover;
+            popover.popdown ();
+        }
+
+        if (!pressed_item.is_editing ()) {
+            pressed_item.start_editing ();
+        }
+    }
+
+    void delete_item_cb (Gtk.Button button) {
+        var child = pressed_item.get_parent ();
+        pressed_fixed.remove (child);
+
+        var popover = button.get_ancestor (typeof (Gtk.Popover)) as Gtk.Popover;
+        popover.popdown ();
     }
 }

@@ -149,7 +149,7 @@ public class Gtk4Demo.CanvasItem : Gtk.Widget {
         return new Gtk.WidgetPaintable (fixed);
     }
 
-    bool is_editing () {
+    public bool is_editing () {
         return editor != null;
     }
 
@@ -163,14 +163,14 @@ public class Gtk4Demo.CanvasItem : Gtk.Widget {
         apply_transform ();
     }
 
-    void stop_editing () {
+    public void stop_editing () {
         if (editor == null) return;
         scale.disconnect (signal_id);
         fixed.remove (editor);
         editor = null;
     }
 
-    void start_editing () {
+    public void start_editing () {
         if (editor != null) return;
         var canvas = this.get_parent();
         editor = new Gtk.Box (Gtk.Orientation.VERTICAL, 12);
