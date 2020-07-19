@@ -9,12 +9,10 @@ public class Gtk4Demo.MainWindow : Gtk.ApplicationWindow {
     Gtk.Box box; Gtk.Box box2; Gtk.Box box3;
     Gtk.CssProvider provider;
 
-    Gtk.DragSource source;
-    Gtk.DropTarget dest;
-    Gtk.GestureClick gesture;
-
     Gtk.Fixed pressed_fixed;
     Gtk4Demo.CanvasItem pressed_item;
+
+    Gtk.Image image_button;
 
     const string[] colors = {
         "red", "green", "blue", "magenta", "orange", "gray", "black", "yellow",
@@ -40,13 +38,8 @@ public class Gtk4Demo.MainWindow : Gtk.ApplicationWindow {
         fixed_canvas.hexpand = true;
         fixed_canvas.vexpand = true;
         fixed_canvas.add_css_class ("frame");
-        // with (fixed_canvas) {
-        // hexpand = true;
-        // vexpand = true;
-        // add_css_class ("frame");
-        // }
 
-        source = new Gtk.DragSource ();
+        var source = new Gtk.DragSource ();
         source.set_actions (Gdk.DragAction.MOVE);
         source.prepare.connect (prepare);
         source.drag_begin.connect (drag_begin);
@@ -55,12 +48,12 @@ public class Gtk4Demo.MainWindow : Gtk.ApplicationWindow {
 
         fixed_canvas.add_controller (source);
 
-        dest = new Gtk.DropTarget (typeof (Gtk.Widget), Gdk.DragAction.MOVE);
+        var dest = new Gtk.DropTarget (typeof (Gtk.Widget), Gdk.DragAction.MOVE);
         dest.on_drop.connect (drag_drop);
 
         fixed_canvas.add_controller (dest);
 
-        gesture = new Gtk.GestureClick ();
+        var gesture = new Gtk.GestureClick ();
         gesture.set_button (0);
         gesture.pressed.connect (pressed_cb);
         gesture.released.connect (released_cb);
@@ -92,18 +85,33 @@ public class Gtk4Demo.MainWindow : Gtk.ApplicationWindow {
         sw.set_child (box3);
 
         foreach (var color in colors) {
-            Gdk.RGBA rgba;
-            Gtk.Widget swatch;
-
-            rgba.parse (color);
-            swatch = new Gtk.Widget (
-                GLib.Type.from_name ("GtkColorSwatch"),
-                "rgba", rgba,
-                "selectable", false,
-                null
-            );
-            box3.append (swatch);
+            box3.append (new Gtk4Demo.ColorSwatch (color));
         }
+        
+        css_button_new ("rainbow1");
+        box3.append (image_button);
+        css_button_new ("rainbow2");
+        box3.append (image_button);
+        css_button_new ("rainbow3");
+        box3.append (image_button);
+    }
+
+    void css_button_new (string css_class) {
+        image_button = new Gtk.Image ();
+        var source = new Gtk.DragSource ();
+
+        image_button.set_size_request (48, 32);
+        image_button.add_css_class (css_class);
+        image_button.set_data<string>("css-class", css_class);
+        source.prepare.connect (css_button_drag_prepare);
+        image_button.add_controller (source);
+    }
+
+    Gdk.ContentProvider css_button_drag_prepare (Gtk.DragSource source, double x, double y) {
+        var css_class = image_button.get_data<string>("css-class");
+        var paintable = new Gtk.WidgetPaintable (image_button);
+        source.set_icon (paintable, 0, 0);
+        return new Gdk.ContentProvider.for_value (css_class);
     }
 
     Gdk.ContentProvider ? prepare (Gtk.DragSource source, double x, double y) {
@@ -199,10 +207,10 @@ public class Gtk4Demo.MainWindow : Gtk.ApplicationWindow {
         if (pressed_item == null) return;
 
         if ((gesture as Gtk.GestureClick).get_current_button () == Gdk.BUTTON_PRIMARY) {
-            if (pressed_item.is_editing()) {
-                pressed_item.stop_editing();
+            if (pressed_item.is_editing ()) {
+                pressed_item.stop_editing ();
             } else {
-                pressed_item.start_editing();
+                pressed_item.start_editing ();
             }
         }
     }

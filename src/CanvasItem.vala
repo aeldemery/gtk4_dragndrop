@@ -140,7 +140,7 @@ public class Gtk4Demo.CanvasItem : Gtk.Widget {
         }
     }
 
-    new void map () {
+    protected override void map () {
         base.map ();
         apply_transform ();
     }
