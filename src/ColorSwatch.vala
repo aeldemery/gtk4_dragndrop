@@ -1,15 +1,19 @@
 public class Gtk4Demo.ColorSwatch : Gtk.Widget {
-    public Gdk.RGBA color { get; set; }
+    Gdk.RGBA color { get; set; default = {1, 1, 1, 1};}
 
-    public ColorSwatch (string color) {
-        this.color.parse(color);
+    public ColorSwatch (string color_str) {
+        // I don't know why the member variable color don't get parsed, 
+        // I have to create a local variable and copy it back to color
+        Gdk.RGBA c = {};
+        c.parse(color_str);
+        color = c;
     }
 
     construct {
         var source = new Gtk.DragSource ();
         source.prepare.connect (drag_prepare);
         this.add_controller (source);
-        this.set_css_name("colorswatch");
+        this.set_css_name ("colorswatch");
     }
 
     Gdk.ContentProvider drag_prepare (Gtk.DragSource source, double x, double y) {
@@ -34,5 +38,6 @@ public class Gtk4Demo.ColorSwatch : Gtk.Widget {
         } else {
             minimum_size = natural_size = 32;
         }
+        minimum_baseline = natural_baseline = -1;
     }
 }
