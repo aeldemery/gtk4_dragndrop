@@ -12,7 +12,6 @@ public class Gtk4Demo.MainWindow : Gtk.ApplicationWindow {
     Gtk.Fixed pressed_fixed;
     Gtk4Demo.CanvasItem pressed_item;
 
-    Gtk.Image image_button;
 
     const string[] colors = {
         "red", "green", "blue", "magenta", "orange", "gray", "black", "yellow",
@@ -87,27 +86,27 @@ public class Gtk4Demo.MainWindow : Gtk.ApplicationWindow {
         foreach (var color in colors) {
             box3.append (new Gtk4Demo.ColorSwatch (color));
         }
-        
-        css_button_new ("rainbow1");
-        box3.append (image_button);
-        css_button_new ("rainbow2");
-        box3.append (image_button);
-        css_button_new ("rainbow3");
-        box3.append (image_button);
+
+        box3.append (css_image_button_new ("rainbow1"));
+        box3.append (css_image_button_new ("rainbow2"));
+        box3.append (css_image_button_new ("rainbow3"));
     }
 
-    void css_button_new (string css_class) {
-        image_button = new Gtk.Image ();
+    Gtk.Image css_image_button_new (string css_class) {
+        var image_button = new Gtk.Image ();
         var source = new Gtk.DragSource ();
 
         image_button.set_size_request (48, 32);
         image_button.add_css_class (css_class);
         image_button.set_data<string>("css-class", css_class);
-        source.prepare.connect (css_button_drag_prepare);
+        source.prepare.connect (css_image_button_drag_prepare);
         image_button.add_controller (source);
+
+        return image_button;
     }
 
-    Gdk.ContentProvider css_button_drag_prepare (Gtk.DragSource source, double x, double y) {
+    Gdk.ContentProvider css_image_button_drag_prepare (Gtk.DragSource source, double x, double y) {
+        var image_button = (Gtk.Image)source.get_widget ();
         var css_class = image_button.get_data<string>("css-class");
         var paintable = new Gtk.WidgetPaintable (image_button);
         source.set_icon (paintable, 0, 0);
