@@ -8,10 +8,10 @@
 ## About <a name = "about"></a>
 Please See the new Incarnation [here](https://github.com/aeldemery/gtk4_dnd)
 
-~~Vala Implementation of Gtk4 Drag and Drop demo app.
+~~Vala Implementation of Gtk4 Drag and Drop demo app.~~
 
-This demo shows dragging colors and widgets.
-The items in this demo can be moved, recolored and rotated.~~
+~~This demo shows dragging colors and widgets.~~
+~~The items in this demo can be moved, recolored and rotated.~~
 
 ### Prerequisites
 
